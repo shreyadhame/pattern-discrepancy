@@ -4,5 +4,5 @@ The ERSSTv5 and COBE datasets were downloaded from https://psl.noaa.gov/data/gri
 
 Method:
 
-    All datasets were interpolated onto 2.5 x 2.5 global grid using the bilinear interpolation method of Climate Data Operator (CDO)
-    Run individual scripts for figures
+All datasets were interpolated onto 2.5 x 2.5 global grid using the bilinear interpolation method of Climate Data Operator (CDO)
+Run individual scripts for figures
