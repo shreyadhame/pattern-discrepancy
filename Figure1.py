@@ -12,22 +12,12 @@ __email__ = "shreyadhame@gmail.com"
 
 #============================================================
 ## Load modules
-import cartopy.crs as ccrs
-import itertools
-import matplotlib as mpl
-import matplotlib.gridspec as gridspec
-import matplotlib.pyplot as plt
-import numpy as np
-import proplot as pplt
-import scipy
 import warnings
-import xarray as xr
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+import itertools
 
-# Custom modules
-from help_func import *
+# Local modules
 from import_highresmip_data import *
+from help_func import *
 from plot_map import *
 
 # Suppress warnings
@@ -44,17 +34,6 @@ pplt.rc.update(grid=False)
 START_YEAR = 1979
 END_YEAR = 2014
 
-# Region Definitions
-COLD_TONGUE_LATS = [-5, -5, 5, 5, -5]
-COLD_TONGUE_LONS = [-95, 180, 180, -95, -95]
-SEP_WARM_BIAS_LATS = [-20, -20, 0, 0, -20]
-SEP_WARM_BIAS_LONS = [-70, -95, -95, -70, -70]
-EASTERN_ATLANTIC_LATS = [-20, -20, 5, 5, -20]
-EASTERN_ATLANTIC_LONS1 = [-20, 359, 359, -20, -20]
-EASTERN_ATLANTIC_LONS2 = [0, 10, 10, 0, 0]
-SOUTHERN_OCEAN_LATS = [-75, -75, -45, -45, -75]
-SOUTHERN_OCEAN_LONS = [359, 0, 0, 359, 359]
-
 COLORS = ["#0072B2", "#332288", "#D55E00", "#AA4499", "#009E73", "#56B4E9", "#2f2f2f"]
 COLORS_RPT = [color * count for color, count in zip(COLORS, [2, 2, 3, 3, 3, 4, 4])]
 COLORS_MODEL = ["#0072B2", "#332288", "#D55E00", "#AA4499", "#009E73", "#56B4E9", "#2f2f2f"]
@@ -67,6 +46,17 @@ LINEWIDTH = 0.3
 CONTOUR_COLOR = '#5D3A9B'
 CONTOUR_FONTSIZE = 6
 DPI = 750
+
+# Region Definitions
+COLD_TONGUE_LATS = [-5, -5, 5, 5, -5]
+COLD_TONGUE_LONS = [-95, 180, 180, -95, -95]
+SEP_WARM_BIAS_LATS = [-20, -20, 0, 0, -20]
+SEP_WARM_BIAS_LONS = [-70, -95, -95, -70, -70]
+EASTERN_ATLANTIC_LATS = [-20, -20, 5, 5, -20]
+EASTERN_ATLANTIC_LONS1 = [-20, 359, 359, -20, -20]
+EASTERN_ATLANTIC_LONS2 = [0, 10, 10, 0, 0]
+SOUTHERN_OCEAN_LATS = [-75, -75, -45, -45, -75]
+SOUTHERN_OCEAN_LONS = [359, 0, 0, 359, 359]
 
 #============================================================
 def calculate_tos_bias(models_tos, obs_tos):
@@ -858,7 +848,7 @@ if __name__ == "__main__":
     # Calculate regional biases
     data_ipwp = calculate_regional_bias(data_em, lat, lon, indo_pacific_warm_pool_region)
 
-    data_sep = np.stack([southeast_pacific_region(v) for v in data])
+    data_sep = np.stack([calc_southeast_pacific_region_average(v) for v in data])
     tdata_sep = np.apply_along_axis(mk_test,1,np.nan_to_num(data_sep))*10
     tdata_sep = np.array([wgt_mean(v,lons,lats) for v in tdata_sep]) 
 
