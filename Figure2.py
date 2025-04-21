@@ -10,22 +10,15 @@ __email__ = "shreyadhame@gmail.com"
 
 #============================================================
 import os
-import sys
-import itertools
 import warnings
-
 import numpy as np
 import xarray as xr
 from scipy.stats import mannwhitneyu
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import cartopy.crs as ccrs
-import proplot as pplt  # Keep if used in plot_map_gridspec
 
-# Custom modules
-from help_func import calc_sig
-from import_highresmip_data import ersst_tos
-from plot_map import plot_map_gridspec
+# Local modules
+from import_highresmip_data import *
+from help_func import *
+from plot_map import *
 
 warnings.filterwarnings('ignore')
 
@@ -178,7 +171,7 @@ def calculate_p_values(cold_tos_m, warm_tos_m):
                 
     return p_tos
 
-def create_figure(lon, lat, tcold_tos_em, twarm_tos_em, tos_diff, ptos_diff):
+def create_figure(lon, lat, tcold_tos_em, twarm_tos_em, tos_diff, ptos_diff, filename):
     """
     Create the figure and save it.
 
@@ -190,56 +183,60 @@ def create_figure(lon, lat, tcold_tos_em, twarm_tos_em, tos_diff, ptos_diff):
         tos_diff (np.ndarray): Difference data.
         ptos_diff (np.ndarray): P-value difference data.
     """
+    try:
+        fig = plt.figure(figsize=(3.39, 7.48))
+        spec = gridspec.GridSpec(ncols=1, nrows=6,
+                                height_ratios=[1, 1, 0.05, 0.1, 1, 0.05],
+                                hspace=0.4, wspace=0.)
 
-    fig = plt.figure(figsize=(3.39, 7.48))
-    spec = gridspec.GridSpec(ncols=1, nrows=6,
-                              height_ratios=[1, 1, 0.05, 0.1, 1, 0.05],
-                              hspace=0.4, wspace=0.)
+        projection = ccrs.Robinson(ROBINSON_CENTRAL_LON)
+        ax1 = fig.add_subplot(spec[0, 0], projection=projection)
+        ax2 = fig.add_subplot(spec[1, 0], projection=projection)
+        ax3 = fig.add_subplot(spec[4, 0], projection=projection)
+        ax_cb1 = fig.add_subplot(spec[2, :])
+        ax_cb2 = fig.add_subplot(spec[5, :])
 
-    projection = ccrs.Robinson(ROBINSON_CENTRAL_LON)
-    ax1 = fig.add_subplot(spec[0, 0], projection=projection)
-    ax2 = fig.add_subplot(spec[1, 0], projection=projection)
-    ax3 = fig.add_subplot(spec[4, 0], projection=projection)
-    ax_cb1 = fig.add_subplot(spec[2, :])
-    ax_cb2 = fig.add_subplot(spec[5, :])
+        axs = [ax1, ax2, ax3]
+        titles = ['(a) Cold tongue bias < 0 | n = 97', '(b) Cold tongue bias ≥ 0 | n = 17', '(c) Difference']
+        var = [tcold_tos_em, twarm_tos_em, tos_diff]
+        levels = [np.arange(-0.4, 0.45, 0.05), np.arange(-0.4, 0.45, 0.05), np.arange(-0.2, 0.22, 0.02)]
+        cmap = pplt.Colormap('ColdHot')
 
-    axs = [ax1, ax2, ax3]
-    titles = ['(a) Cold tongue bias < 0 | n = 97', '(b) Cold tongue bias ≥ 0 | n = 17', '(c) Difference']
-    var = [tcold_tos_em, twarm_tos_em, tos_diff]
-    levels = [np.arange(-0.4, 0.45, 0.05), np.arange(-0.4, 0.45, 0.05), np.arange(-0.2, 0.22, 0.02)]
-    cmap = pplt.Colormap('ColdHot')
+        for i, ax in enumerate(axs):
+            plot_map_gridspec(ax, var[i], lon, lat, levels=levels[i], mp=0,  # Removed unused mp
+                            cmap=cmap, ticks=False, land=True, title=titles[i],
+                            loc_title='center', pad=5, fontsize=10)
 
-    for i, ax in enumerate(axs):
-        plot_map_gridspec(ax, var[i], lon, lat, levels=levels[i], mp=0,  # Removed unused mp
-                           cmap=cmap, ticks=False, land=True, title=titles[i],
-                           loc_title='center', pad=5, fontsize=10)
+            # Define regions of interest (use the constants)
+            regions = [
+                (SOUTHERN_OCEAN_LONS, SOUTHERN_OCEAN_LATS, 'ls'),
+                (COLD_TONGUE_LONS, COLD_TONGUE_LATS, None),
+                ([110, 180, 180, 110, 110], [-5, -5, 5, 5, -5], None),  # WP Lon/Lat
+                (SEP_WARM_BIAS_LONS, [-45, -45, -5, -5, -45], 'ls'),
+                ([-145, -110, -110, -145, -145], [10, 10, 30, 30, 10], 'ls')  # NE Pacific
+            ]
 
-        # Define regions of interest (use the constants)
-        regions = [
-            (SOUTHERN_OCEAN_LONS, SOUTHERN_OCEAN_LATS, 'ls'),
-            (COLD_TONGUE_LONS, COLD_TONGUE_LATS, None),
-            ([110, 180, 180, 110, 110], [-5, -5, 5, 5, -5], None),  # WP Lon/Lat
-            (SEP_WARM_BIAS_LONS, [-45, -45, -5, -5, -45], 'ls'),
-            ([-145, -110, -110, -145, -145], [10, 10, 30, 30, 10], 'ls')  # NE Pacific
-        ]
+            for lons, lats, linestyle in regions:
+                ax.plot([l % 360 for l in lons], lats, color='black', linewidth=LINEWIDTH,
+                        ls='--' if linestyle == 'ls' else '-', marker='',
+                        transform=ccrs.PlateCarree())
 
-        for lons, lats, linestyle in regions:
-            ax.plot([l % 360 for l in lons], lats, color='black', linewidth=LINEWIDTH,
-                    ls='--' if linestyle == 'ls' else '-', marker='',
-                    transform=ccrs.PlateCarree())
+        plt.rcParams['hatch.linewidth'] = 0
+        plt.rcParams['hatch.color'] = '#3f3f3f'
 
-    plt.rcParams['hatch.linewidth'] = 0
-    plt.rcParams['hatch.color'] = '#3f3f3f'
+        ax3.contourf(lon, lat, ptos_diff, 1, hatches=[4 * '.'],
+                    alpha=0., transform=ccrs.PlateCarree())
 
-    ax3.contourf(lon, lat, ptos_diff, 1, hatches=[4 * '.'],
-                 alpha=0., transform=ccrs.PlateCarree())
+        # Colorbars
+        create_colorbar(ax_cb1, cmap, levels[0], label='$^\circ$C $decade^{-1}$')
+        create_colorbar(ax_cb2, cmap, levels[2], label='$^\circ$C $decade^{-1}$')
 
-    # Colorbars
-    create_colorbar(ax_cb1, cmap, levels[0], label='$^\circ$C $decade^{-1}$')
-    create_colorbar(ax_cb2, cmap, levels[2], label='$^\circ$C $decade^{-1}$')
+        plt.suptitle('SST trend in models (1979 - 2014)', fontsize=11, y=0.95)
+        plt.savefig(filename, dpi=DPI, bbox_inches="tight")
+        print(f"Plot saved to {filename}")
 
-    plt.suptitle('SST trend in models (1979 - 2014)', fontsize=11, y=0.95)
-    plt.savefig('Fig2.png', dpi=DPI, bbox_inches="tight")
+    except Exception as e:
+        print(f"Error in plot: {e}")
         
 def main():
     """Main function for plotting."""
@@ -273,7 +270,9 @@ def main():
     lat = ds1.lat.values
 
     # Create the figure
-    create_figure(lon, lat, tcold_tos_em, twarm_tos_em, tos_diff, ptos_diff)
+    create_figure(lon, lat, tcold_tos_em, twarm_tos_em, tos_diff, ptos_diff, filename='Fig2.png')
 
+# ============================================================
+## Execute script
 if __name__ == "__main__":
     main()
