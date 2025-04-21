@@ -8,28 +8,21 @@ __author__ = "Shreya Dhame"
 __version__ = "3.6.3"
 __email__ = "shreyadhame@gmail.com"
 #============================================================
-import os
-import sys
-import argparse
-import gc
 import klepto
-import numpy as np
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import proplot as pplt
-import cartopy.crs as ccrs
-import matplotlib as mpl
-from plot_maps import plot_maps_gridspec
-from import_highresmip_data import ersst_tos, cobe_tos
 
 # Suppress warnings
 import warnings
 warnings.filterwarnings('ignore')
 
+# Local modules
+from plot_map import *
+from import_highresmip_data import ersst_tos, cobe_tos
+
 # Set global plot settings
 plt.rc('font', size=12)
 pplt.rc.update(grid=False)
+
+DPI = 750
 
 #============================================================
 def load_data(model):
@@ -63,7 +56,7 @@ def plot_maps(axs, map_plots, lon_axis, lat_axis):
     titles = ['(b) Pattern 1', '(c) Pattern 2']
     
     for i, (ax, map_plot) in enumerate(zip(axs, map_plots)):
-        plot_maps_gridspec(ax, map_plot, lon_axis, lat_axis, levels=clev, mp=0.,
+        plot_map_gridspec(ax, map_plot, lon_axis, lat_axis, levels=clev, mp=0.,
                            cmap=pplt.Colormap('ColdHot'),
                            ticks=False, land=True, title=titles[i], loc_title='center', pad=5)
         
@@ -129,7 +122,9 @@ def main():
     
     plot_time_series([ax3, ax4], lfcs)
     
-    plt.savefig('Fig_lfca_cobe.png', dpi=750, bbox_inches="tight")
+    plt.savefig(filename='Fig_lfca_cobe.png', dpi=DPI, bbox_inches="tight")
 
+# ============================================================
+## Execute script
 if __name__ == "__main__":
     main()
