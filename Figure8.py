@@ -234,7 +234,7 @@ def main():
     dT_dz = [np.gradient(v, depths, axis=1) for v in thetat_epm]
     wdT_dzm = [np.nanmean((wti_epm[i] * dT_dz[i]), axis=0) for i in range(len(dT_dz))]
 
-    # --- Zonal mean (EP) analysis
+    #  Zonal mean (EP) analysis
     thetat_epz = [
         select_region(v, LAT_RANGE_ZONAL, LON_RANGE_EP, LEVEL_RANGE).mean(('lon', 'n'))
         for v in thetat
@@ -250,7 +250,7 @@ def main():
     dT_dz = [np.gradient(v, depths, axis=1) for v in thetat_epz]
     wdT_dzz = [np.nanmean((wti_epz[i] * dT_dz[i]), axis=0) for i in range(len(dT_dz))]
 
-    # --- Plotting
+    #  Plotting
     plot_data(
         lons, lats, depths,
         tthetat_epm, tthetat_epz, ttauut_ep,

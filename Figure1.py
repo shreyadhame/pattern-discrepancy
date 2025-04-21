@@ -613,11 +613,11 @@ def plot_pacific_trend_discrepancy_remote_biases(slope_ep, r_squared_ep, p_ma_ep
         [plot_regions(ax, "East Pacific") for ax in [axs[0],axs[1]]] 
         [plot_regions(ax, "Southeast Pacific") for ax in [axs[2],axs[3]]] 
 
-        # --- Colorbar ---
+        #  Colorbar 
         create_colorbar(ax_cb1, cmap[0], levels[0], label='$decade^{-1}$')
         create_colorbar(ax_cb2, cmap[1], levels[1], label='')
 
-        # --- Annotations ---
+        #  Annotations 
         plt.suptitle('Relationship between remote mean state SST bias and\ntropical Pacific SST trend discrepancy (1979 - 2014)',
                      fontsize=11, y=1.04)
 
